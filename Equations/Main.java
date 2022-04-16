@@ -118,6 +118,7 @@ class Main {
         int currentVarId = idX;
         int count = 0;
         Stack<Integer> varStack = new Stack<Integer>();
+        int numSolved = solvedMap.size();
         while (!solvedMap.containsKey(idX)) {
             if (count%1000==0) {
                 int solvedSize = solvedMap.size();
@@ -173,11 +174,21 @@ class Main {
             if (varStack.size() > 0) {
                 currentVarId = varStack.pop();
             } else {
-                currentVarId = idX;
+                if (solvedMap.size() == numSolved) {
+                    break;
+                } else {
+                    numSolved = solvedMap.size();
+                    currentVarId = idX;
+                }
             }
         }
 
-        result += solvedMap.get(idX);
+        Integer solution = solvedMap.get(idX);
+        if (solution == null) {
+//          System.out.println("System of Equations without solution")
+            return "null";
+        }
+        result += solution;
 
         return result;
     }
