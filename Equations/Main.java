@@ -20,6 +20,12 @@ class Operand {
 
 }
 
+// class SystemOfEquations {
+//     HashMap<String, Integer> varMap = new HashMap<String, Integer>();
+//     HashMap<Integer, ArrayList<Operand>> equationMap = new HashMap<Integer, ArrayList<Operand>>();
+//
+// }
+
 class Main {
 
     public static String SystemofEquations(String str) {
@@ -37,6 +43,7 @@ class Main {
         HashMap<String, Integer> varMap = new HashMap<String, Integer>();
         HashMap<Integer, ArrayList<Operand>> equationMap = new HashMap<Integer, ArrayList<Operand>>();
         HashMap<Integer, Integer> solvedMap = new HashMap<Integer, Integer>();
+        HashMap<Integer, Boolean> processedMap = new HashMap<Integer, Boolean>();
 
         int varId = 0;
 
@@ -111,6 +118,7 @@ class Main {
                 }
                 equationMap.put(lVar, operandList);
             }
+            processedMap.put(lVar, false);
         }
         equations = null;
 
@@ -119,11 +127,13 @@ class Main {
         int count = 0;
         Stack<Integer> varStack = new Stack<Integer>();
         int numSolved = solvedMap.size();
-        while (!solvedMap.containsKey(idX)) {
+        boolean changedState = true;
+        while (!solvedMap.containsKey(idX) && changedState) {
             if (count%1000==0) {
-                int solvedSize = solvedMap.size();
-                int totSize = solvedSize + equationMap.size();
-                System.out.println(solvedSize + "/" + totSize);
+                // int solvedSize = solvedMap.size();
+                // int totSize = solvedSize + equationMap.size();
+                // System.out.println(solvedSize + "/" + totSize);
+                changedState = false;
             }
 
             // System.out.println("\n\nITERATION: " + count);
@@ -164,13 +174,21 @@ class Main {
             if (solved) {
                 solvedMap.put(currentVarId, scalar);
                 equationMap.remove(currentVarId);
+                changedState = true;
             } else {
                 if (scalar != 0) {
                     newOperands.add(new Operand(scalar, false));
                 }
                 equationMap.put(currentVarId, newOperands);
             }
+
             count++;
+
+            if (processedMap.get(currentVarId) == false) {
+                processedMap.put(currentVarId, true);
+                changedState = true;
+            }
+
             if (varStack.size() > 0) {
                 currentVarId = varStack.pop();
             } else {
@@ -182,6 +200,24 @@ class Main {
                 }
             }
         }
+
+        // System.out.println("\n\nITERATION: " + count);
+        // System.out.println("currentVarId: " + currentVarId);
+        // System.out.println("\nSOLVED VARS:");
+        // for (Map.Entry<Integer, Integer> entry: solvedMap.entrySet()) {
+        //     System.out.println(entry.getKey() + "=" + entry.getValue());
+        // }
+        // System.out.print("\nUNSOLVED VARS:");
+        // for (Map.Entry<Integer, ArrayList<Operand>> entry: equationMap.entrySet()) {
+        //     System.out.print("\n" + entry.getKey() + "=");
+        //     for (Operand operand: entry.getValue()) {
+        //         System.out.print("^"+operand.getOperand());
+        //         if (operand.isVar()) {
+        //             System.out.print("(V)");
+        //         }
+        //     }
+        // }
+
 
         Integer solution = solvedMap.get(idX);
         if (solution == null) {
