@@ -20,11 +20,6 @@ class Operand {
 
 }
 
-// class SystemOfEquations {
-//     HashMap<String, Integer> varMap = new HashMap<String, Integer>();
-//     HashMap<Integer, ArrayList<Operand>> equationMap = new HashMap<Integer, ArrayList<Operand>>();
-//
-// }
 
 class Main {
 
@@ -32,7 +27,7 @@ class Main {
         // code goes here
 
         if (str.isEmpty()) {
-          System.out.println("Empty");
+          // System.out.println("Empty");
           return "null";
         }
         String result = "";
@@ -64,13 +59,13 @@ class Main {
             if (!containsOnlyLetters(leftPart) || !containsOnlyLettersNumbersAndXOR(rightPart)) {
                 // discard equations where variables contain illegal characters (not letters)
                 // and discard equations where the right part contains illegal characters
-                System.out.println("Illegal var name or illegal characters in the right part)");
+                // System.out.println("Illegal var name or illegal characters in the right part)");
                 return "null";
             }
 
             if (equationMap.containsKey(leftPart)) {
                 // The same var cannot be on the left side of multiple equations
-                System.out.println("Duplicate var on the left side: " + leftPart);
+                // System.out.println("Duplicate var on the left side: " + leftPart);
                 return "null";
             }
 
@@ -101,7 +96,7 @@ class Main {
                     try {
                         iOperand = Integer.parseInt(operand);
                     } catch (NumberFormatException e) {
-                        System.out.println("Wrong value parsing operand to integer: " + operand);
+                        // System.out.println("Wrong value parsing operand to integer: " + operand);
                         return "null";
                     }
                     scalar ^= iOperand;
