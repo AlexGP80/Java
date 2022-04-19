@@ -72,7 +72,7 @@ fn operand_is_number(operand: &str) -> bool {
 fn system_of_equations(filename: &str) -> String {
     // Open filename and read contents into a String
     let contents = fs::read_to_string(filename)
-        .expect("Something went wrong reading the file");
+        .expect(&format!("Something went wrong reading the file {}", filename));
 
     // Split input into equations
     let equations: Vec<&str> = contents.split(";").collect();
@@ -272,6 +272,14 @@ fn system_of_equations(filename: &str) -> String {
 }
 
 fn main() {
-    const FILENAME: &str = "2cycle.txt";
-    println!("{}", system_of_equations(FILENAME));
+    use std::env;
+
+    let args =  env::args();
+    if args.len() != 2 {
+        println!("USAGE: \n\trusty_equations input_file_name");
+    }
+    for arg in env::args().skip(1) {
+        // println!("{}", &arg);
+        println!("{}", system_of_equations(&arg));
+    }
 }
