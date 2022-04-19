@@ -18,6 +18,7 @@ enum OperandType {
     NUMBER,
 }
 
+#[derive(Debug)]
 struct Operand {
     value: i32,
     is_var: bool,
@@ -29,6 +30,14 @@ impl Operand {
             value,
             is_var,
         }
+    }
+
+    fn is_var(&self) -> bool {
+        return self.is_var;
+    }
+
+    fn get_value(&self) -> i32 {
+        return self.value;
     }
 }
 
@@ -60,7 +69,7 @@ fn operand_is_number(operand: &str) -> bool {
     true
 }
 
-fn system_of_equations(filename: &str) -> &str {
+fn system_of_equations(filename: &str) -> String {
     // Open filename and read contents into a String
     let contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
@@ -78,7 +87,7 @@ fn system_of_equations(filename: &str) -> &str {
         // println!("{}", equation);
         if eq_parts.len() != 2 {
             // Only one equal sign ("=") allowed per equation
-            return "null";
+            return "null".to_string();
         }
 
         // var_name is the left part of the equation
@@ -86,7 +95,7 @@ fn system_of_equations(filename: &str) -> &str {
         let var_name = eq_parts[0].trim();
         if !var_name_is_valid(var_name) {
             // Variables can only contain alphabetic ascii letters
-            return "null";
+            return "null".to_string();
         }
 
         // TODO: refactor to a Separate function
@@ -103,7 +112,7 @@ fn system_of_equations(filename: &str) -> &str {
         // Each variable can only appear on the left part of an equation once.
         if let Some(_) = equations_map.get(&var_id) {
             // The same variable cannot appear on the left part of more than one equation
-            return "null"
+            return "null".to_string();
         };
 
 
@@ -129,7 +138,7 @@ fn system_of_equations(filename: &str) -> &str {
             match get_operand_type(operand) {
                 OperandType::INVALID => {
                     // Invalid operand in the right part of the equation, only numbers and variables allowed
-                    return "null";
+                    return "null".to_string();
                 },
                 OperandType::NUMBER => {
                     number_part ^= operand.parse::<i32>().unwrap();
@@ -137,16 +146,16 @@ fn system_of_equations(filename: &str) -> &str {
                 OperandType::VARIABLE => {
                     solved = false;
                     // todo: refactor to a Separate function
-                    let var_id: i32 = match var_map.get(var_name) {
-                        Some(var_id) => *var_id,
+                    let v_id: i32 = match var_map.get(operand) {
+                        Some(id) => *id,
                         None => {
                             // var_id 0 won't ever be used, but I prefer to not return (last_var_id - 1) for clarity
                             last_var_id += 1;
-                            var_map.insert(var_name, var_id);
+                            var_map.insert(operand, last_var_id);
                             last_var_id
                         }
                     };
-                    vec_of_operands.push(Operand::new(var_id, true));
+                    vec_of_operands.push(Operand::new(v_id, true));
                 }
             }
             // println!("{}", operand);
@@ -165,15 +174,104 @@ fn system_of_equations(filename: &str) -> &str {
             }
         }
 
+    }
+
+    let id_x: i32 = match var_map.get("x") {
+        Some(id) => *id,
+        None => {
+            // Variable X not found
+            return "null".to_string();
+        }
+    };
+
+    let mut var_stack: Vec<i32> = Vec::new();
+    var_stack.push(id_x);
+
+    let mut count = 0;
+
+    while !solved_map.contains_key(&id_x) {
+
+        if count % 1000 == 0 {
+            println!("{}/{}", solved_map.len(), solved_map.len() + equations_map.len());
+            // println!("UNSOLVED {:?}", equations_map);
+            // println!("VARS: {:?}", var_map);
+            // println!("\nSOLVED {:?}\n\n\n", solved_map);
+        }
+        count += 1;
+
+        let current_var_id: i32 = match var_stack.pop() {
+            None => {
+                return "null".to_string();
+            },
+            Some(id) => id,
+        };
+
+        // println!("Procesando variable: {}", current_var_id);
+
+        let mut new_operands: Vec<Operand> = Vec::new();
+        let operands: &Vec<Operand> = match equations_map.get(&current_var_id) {
+            Some(v) => v,
+            None => {
+                // continue;
+                // SOMETHING IS BROKEN
+                panic!("La variable en proceso: {} no se encuentra en el mapa de ecuaciones",
+                        current_var_id);
+            }
+        };
+
+        let mut next_vars_to_process: Vec<i32> = vec![];
+        let mut solved = true;
+        let mut number_part = 0;
+        for operand in operands {
+            match operand.is_var() {
+                true => {
+                    match solved_map.get(&operand.get_value()) {
+                        Some(value) => {
+                            number_part ^= value;
+                        },
+                        None => {
+                            solved = false;
+                            next_vars_to_process.push(operand.get_value());
+                        },
+                    }
+                },
+                false => {
+                    number_part ^= operand.get_value();
+                },
+            }
+        }
+
+        match solved {
+            true => {
+                equations_map.remove(&current_var_id);
+                solved_map.insert(current_var_id, number_part);
+            },
+            false => {
+                var_stack.push(current_var_id);
+                for var in next_vars_to_process {
+                    var_stack.push(var);
+                    new_operands.push(Operand::new(var, true));
+                }
+                if number_part != 0 {
+                    new_operands.push(Operand::new(number_part, false));
+                }
+                equations_map.insert(current_var_id, new_operands);
+            }
+        }
 
     }
 
+    let x_value = match solved_map.get(&id_x) {
+        Some(val) => val,
+        None => {
+            return "null".to_string();
+        }
+    };
 
-
-    "hola"
+    x_value.to_string()
 }
 
 fn main() {
-    const filename: &str = "thousand.txt";
-    println!("{}", system_of_equations(filename));
+    const FILENAME: &str = "2cycle.txt";
+    println!("{}", system_of_equations(FILENAME));
 }
