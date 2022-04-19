@@ -277,6 +277,7 @@ fn main() {
     let args =  env::args();
     if args.len() != 2 {
         println!("USAGE: \n\trusty_equations input_file_name");
+        return;
     }
     for arg in env::args().skip(1) {
         // println!("{}", &arg);
