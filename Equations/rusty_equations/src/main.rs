@@ -214,6 +214,9 @@ fn system_of_equations(filename: &str) -> String {
             None => {
                 // continue;
                 // SOMETHING IS BROKEN
+                println!("UNSOLVED {:?}", equations_map);
+                println!("VARS: {:?}", var_map);
+                println!("\nSOLVED {:?}\n\n\n", solved_map);
                 panic!("La variable en proceso: {} no se encuentra en el mapa de ecuaciones",
                         current_var_id);
             }

@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+from collections import deque
 
 random.seed(datetime.now().microsecond)
 
@@ -41,15 +42,45 @@ def main():
     with open('input.txt', 'w') as f:
         f.write('x = a ^ b ^ c')
         current = 'a'
-        for i in range(1000000):
-            next1 = get_next_var_name(current)
-            next2 = get_next_var_name(next1)
-            next3 = get_next_var_name(next2)
-            f.write(f'; {current} = {next1} ^ {next2} ^ {next3}')
-            current = get_next_var_name(current)
-        next1 = get_next_var_name(current)
-        next2 = get_next_var_name(next1)
-        f.write(f'; {current} = {random.randint(0,9999)}; {next1} = {random.randint(0,9999)}; {next2} = {random.randint(0,9999)}')
+        last_used = 'c'
+        # last_processed = 'x'
+        queue = deque()
+        queue.append('b')
+        queue.append('c')
+        for i in range(1000):
+            equation = f'; {current} ='
+            num_operands = random.randint(2,5)
+            for j in range(num_operands):
+                if j==0:
+                    # variable
+                    var_name = get_next_var_name(last_used);
+                    last_used = var_name
+                    equation += f' {var_name}'
+                    queue.append(var_name)
+                else:
+                    equation += ' ^'
+                    if random.randint(1,2)%2 == 0:
+                        # variable
+                        var_name = get_next_var_name(last_used);
+                        last_used = var_name
+                        equation += f' {var_name}'
+                        queue.append(var_name)
+                    else:
+                        # number
+                        equation += f' {random.randint(0,9999)}'
+            # last_processed = current
+            current = queue.popleft()
+            f.write(equation)
+
+        # flush
+        f.write(f'; {current} = {random.randint(0,9999)}')
+        for var in queue:
+            for i in range(random.randint(1,3)):
+                if i==0:
+                    f.write(f'; {var} = {random.randint(0,9999)}')
+                else:
+                    f.write(f' ^ {random.randint(0,9999)}')
+
 
 
 
