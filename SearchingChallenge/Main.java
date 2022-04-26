@@ -1,82 +1,84 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
-import java.io.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-class Main {
+// From text input in the form:
+// word1 word2 word3 ... wordN
+// return the word with most repeated characters
+// If empty input or other condition preventing a valid output, return "-1"
+// Append the token "qmg2dfu06e1" to the result, and then replace every fourth character with an underscore "_"
+public class Main {
+    private static final String MY_TOKEN = "qmg2dfu06e1";
 
-  public static String searchingChallenge(String str) {
-    // code goes here
-    String myToken = "qmg2dfu06e1";
-    if (str.isEmpty()) {
-      return replaceEveryFourthCharWithUnderscore("-1" + myToken);
-    }
-    String[] words = str.split(" ");
-    int [] lens = new int [words.length]; // int default value is 0 in java
-    for (int i = 0; i < words.length; i++) {
-      lens[i] = numRepeatedCharacters(words[i]);
-    }
-    int pos_max = getFirstMax(lens);
-    if (pos_max == -1) {
-      return replaceEveryFourthCharWithUnderscore("-1" + myToken);
-    }
-    String result =  words[pos_max] + myToken;
-    return replaceEveryFourthCharWithUnderscore(result);
-  }
+    public static void main(String[] args) {
+        Path filePath = Paths.get("c:/Users/Usuario/projects/search/src/main/resources", "input.txt");
 
-  public static String replaceEveryFourthCharWithUnderscore(String str) {
-    String result = "";
-    for (int i=0; i<str.length(); i+=4) {
-      if (i+3 < str.length()) {
-        result += str.substring(i, i+3) + "_";
-      } else {
-        result += str.substring(i, str.length());
-      }
-    }
-    return result;
-  }
-
-  public static int getFirstMax(int [] arr) {
-    int max = 0;
-    int pos_max = -1;
-    for (int i = 0; i < arr.length; i++) {
-      if (arr[i] > max) {
-        max = arr[i];
-        pos_max = i;
-      }
-    }
-    if (max == 1) {
-      return -1;
-    }
-    return pos_max;
-  }
-
-  public static int numRepeatedCharacters(String str) {
-    int max = 1;
-    for (int i = 0; i<str.length(); i++) {
-      int current = 1;
-      for (int j = i+1; j<str.length(); j++) {
-        if (str.charAt(j) == str.charAt(i))  {
-          current++;
+        //try-with-resources
+        try (Stream<String> lines = Files.lines( filePath ))
+        {
+            System.out.println(lines.limit(1)
+                    .map(Main::searchingChallenge)
+                    .collect(Collectors.joining()));
         }
-      }
-      if (current > max) {
-        max = current;
-      }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
     }
-    return max;
-  }
 
-  public static void main (String[] args) {
-    try {
-      File file = new File("./input.txt");
-      BufferedReader br = new BufferedReader(new FileReader(file));
+    public static String searchingChallenge(String str) {
+        if (str.isEmpty()) {
+            return replaceEveryFourthChar("-1"+MY_TOKEN);
+        }
 
-      String str;
-      while ((str = br.readLine()) != null) {
-        System.out.println(searchingChallenge(str));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+        Map<String, Integer> wordMap= Arrays.stream(str.split(" "))
+                .collect(Collectors.toMap(word -> word, Main::countRepeated));
+
+        String result = Collections.max(wordMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+
+        result += MY_TOKEN;
+
+        return replaceEveryFourthChar(result);
     }
-  }
 
+    public static String replaceEveryFourthChar(String str) {
+        if (str.isEmpty()) {
+            return "";
+        }
+        char[] chars = str.toCharArray();
+        return IntStream.range(0, chars.length)
+                .mapToObj((pos) -> replaceFourth(chars[pos], pos))
+                .map(c -> Character.toString(c))
+                .collect(Collectors.joining());
+
+    }
+
+    public static char replaceFourth(char c, int position) {
+        if ((position+1)%4 == 0) {
+            return '_';
+        }
+        return c;
+    }
+
+    public static int countRepeated(String str) {
+        if (str.isEmpty()) {
+            return 0;
+        }
+        return Math.toIntExact(str.toLowerCase(Locale.ROOT).chars()
+                .boxed()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .values()
+                .stream()
+                .sorted(Comparator.reverseOrder())
+                .limit(1)
+                .collect(Collectors.toList())
+                .get(0));
+    }
 }
