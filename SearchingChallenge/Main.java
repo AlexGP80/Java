@@ -3,7 +3,7 @@ import java.io.*;
 
 class Main {
 
-  public static String SearchingChallenge(String str) {
+  public static String searchingChallenge(String str) {
     // code goes here
     String myToken = "qmg2dfu06e1";
     if (str.isEmpty()) {
@@ -66,9 +66,17 @@ class Main {
   }
 
   public static void main (String[] args) {
-    // keep this function call here
-    Scanner s = new Scanner(System.in);
-    System.out.print(SearchingChallenge(s.nextLine()));
+    try {
+      File file = new File("./input.txt");
+      BufferedReader br = new BufferedReader(new FileReader(file));
+
+      String str;
+      while ((str = br.readLine()) != null) {
+        System.out.println(searchingChallenge(str));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
 }
